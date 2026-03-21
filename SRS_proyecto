@@ -1,0 +1,326 @@
+# Software Requirements Specification (SRS)
+## Plataforma de Aprendizaje Adaptativo y Colaborativo
+
+**Versión:** 1.0  
+**Fecha:** Marzo 2026  
+**Cliente:** Pontificia Universidad Javeriana  
+**Grupo:** Grupo 4  
+**Integrantes:**
+- Harold Alejandro Vargas Martínez - 	
+00020526190
+- Juan Martin Trejos - 00020513089
+- Wilson David Sanchez Prieto - 00020438180
+- Juan Sebastian Forero Moreno - [Código]
+
+---
+
+## 1. PROPÓSITO Y OBJETIVOS DEL SISTEMA
+
+### 1.1 Propósito
+Este documento especifica los requisitos funcionales y no funcionales de la Plataforma de Aprendizaje Adaptativo y Colaborativo, desarrollada como proyecto del semestre en el curso de Arquitectura de Software de la Pontificia Universidad Javeriana.
+
+### 1.2 Objetivos del Sistema
+- Permitir a profesores crear y gestionar cursos con materiales, módulos y evaluaciones
+- Registrar y analizar el desempeño de los estudiantes en las actividades de cada curso
+- Adaptar el recorrido de aprendizaje de cada estudiante según su progreso y resultados
+- Fomentar la colaboración entre estudiantes mediante grupos de estudio, foros y tutorías entre pares
+- Proveer herramientas de analítica a los profesores para identificar dificultades y patrones de desempeño
+- Garantizar escalabilidad, disponibilidad y seguridad para miles de usuarios concurrentes
+
+### 1.3 Alcance
+La plataforma permitirá a estudiantes y profesores gestionar cursos en línea con seguimiento personalizado del progreso académico. El sistema adaptará el recorrido de aprendizaje según el desempeño de cada estudiante y fomentará la colaboración entre pares mediante grupos de estudio, foros y tutorías.
+
+### 1.4 Contexto del Negocio
+**Situación actual:**
+- Las plataformas educativas actuales ofrecen el mismo contenido y ritmo para todos los estudiantes
+- No existe seguimiento personalizado del progreso académico
+- Las herramientas de colaboración entre estudiantes son limitadas o inexistentes
+- Los profesores no cuentan con analítica para detectar dificultades de sus estudiantes
+
+**Necesidad:**
+- Sistema que adapte el contenido según el desempeño individual de cada estudiante
+- Promover el aprendizaje colaborativo entre pares
+- Dar herramientas de analítica a los profesores
+- Disponibilidad 24/7 con soporte para miles de usuarios concurrentes
+
+### 1.5 Definiciones, Acrónimos y Abreviaciones
+- **SRS:** Software Requirements Specification
+- **SAD:** Software Architecture Document
+- **ADR:** Architectural Decision Record
+- **RF:** Requerimiento Funcional
+- **RNF:** Requerimiento No Funcional
+- **RBAC:** Role-Based Access Control — Control de acceso basado en roles
+- **LMS:** Learning Management System — Sistema de gestión del aprendizaje
+- **Motor de Adaptación:** Módulo que evalúa el progreso del estudiante y ajusta su ruta de aprendizaje
+- **P95:** Percentil 95 — el 95% de las operaciones deben cumplir el tiempo indicado
+
+---
+
+## 2. REQUERIMIENTOS FUNCIONALES (RF)
+
+### RF-01: Autenticación y Gestión de Usuarios
+**Prioridad:** Alta  
+**Descripción:** El sistema permite registro, autenticación y gestión de perfiles de usuario con soporte para OAuth 2.0.
+
+**Criterios de aceptación:**
+- Registro con nombre, correo y contraseña; confirmación por email en < 60 segundos
+- Autenticación propia y mediante OAuth 2.0 (Google, institucional)
+- Sesión expira tras 30 minutos de inactividad
+- Tras 5 intentos fallidos, cuenta bloqueada por 15 minutos
+- Recuperación de contraseña por correo electrónico
+
+---
+
+### RF-02: Control de Acceso por Roles (RBAC)
+**Prioridad:** Alta  
+**Descripción:** El sistema controla el acceso a funcionalidades según el rol del usuario (estudiante, profesor, administrador).
+
+**Criterios de aceptación:**
+- Estudiante solo accede a sus propios cursos y datos académicos
+- Profesor gestiona únicamente los cursos que le han sido asignados
+- Administrador puede gestionar usuarios, cursos y configuraciones globales
+- Acceso no autorizado retorna error 403 y genera registro de auditoría
+- Roles asignables y revocables en tiempo real por un administrador
+
+---
+
+### RF-03: Creación y Gestión de Cursos
+**Prioridad:** Alta  
+**Descripción:** Los profesores pueden crear, estructurar y publicar cursos con módulos, materiales y actividades.
+
+**Criterios de aceptación:**
+- Crear curso con título, descripción, objetivos y estructura de módulos
+- Subir materiales en PDF, video (MP4) y texto enriquecido
+- Definir orden y condiciones de desbloqueo de módulos (prerequisitos)
+- Cambios en contenido publicados en tiempo real sin afectar progreso activo
+- Archivos subidos no deben superar 500 MB por recurso
+
+---
+
+### RF-04: Inscripción de Estudiantes
+**Prioridad:** Alta  
+**Descripción:** Los estudiantes pueden inscribirse en cursos disponibles de forma autónoma o mediante invitación del profesor.
+
+**Criterios de aceptación:**
+- Buscar y filtrar cursos por nombre, categoría o nivel
+- Inscripción efectiva en menos de 5 segundos
+- Notificación de inscripción exitosa por correo en < 60 segundos
+- El profesor puede inscribir estudiantes manualmente o generar enlace de acceso
+- Sistema limita inscripción si el curso tiene cupo máximo definido
+
+---
+
+### RF-05: Seguimiento del Progreso Académico
+**Prioridad:** Alta  
+**Descripción:** El sistema registra automáticamente el avance de cada estudiante en lecciones, actividades y evaluaciones.
+
+**Criterios de aceptación:**
+- Progreso actualizado en menos de 3 segundos tras completar una actividad
+- Estudiante puede consultar su porcentaje de avance por módulo y por curso
+- Profesor visualiza progreso individual y colectivo desde su panel
+- Historial de progreso persistente ante fallos del sistema
+- Cálculo automático de calificación promedio por curso
+
+---
+
+### RF-06: Adaptación del Recorrido de Aprendizaje
+**Prioridad:** Alta  
+**Descripción:** El sistema adapta automáticamente el contenido disponible para cada estudiante según su desempeño y las reglas definidas por el profesor.
+
+**Criterios de aceptación:**
+- Si calificación < umbral (configurable, por defecto 60%), el sistema sugiere materiales de refuerzo
+- Si calificación > umbral de avance (por defecto 80%), habilita el siguiente módulo
+- Reglas de adaptación configurables por el profesor sin soporte técnico
+- Notificación al estudiante sobre contenido recomendado en < 10 segundos tras evaluación
+- Motor de adaptación aplica reglas en < 2 segundos tras recibir resultado
+
+---
+
+### RF-07: Evaluaciones
+**Prioridad:** Alta  
+**Descripción:** Los profesores diseñan evaluaciones con distintos tipos de preguntas y los estudiantes las realizan con retroalimentación automática.
+
+**Criterios de aceptación:**
+- Soporta preguntas de opción múltiple, verdadero/falso, respuesta corta y ensayo
+- Calificación automática de preguntas cerradas en < 3 segundos tras envío
+- Profesor configura: tiempo límite, número de intentos y fecha de disponibilidad
+- Estudiante puede ver retroalimentación si el profesor la habilitó
+- Resultados almacenados en historial del estudiante y visibles para el profesor
+
+---
+
+### RF-08: Grupos de Estudio y Foros
+**Prioridad:** Media  
+**Descripción:** La plataforma permite grupos de estudio y foros de discusión por curso para fomentar la colaboración.
+
+**Criterios de aceptación:**
+- Profesor puede crear grupos o permitir que los estudiantes se autoorganicen
+- Grupos cuentan con espacio compartido para archivos y coordinación
+- Cada curso tiene foro general y permite subforos por módulo
+- Notificaciones de nuevas respuestas en hilos (configurable por usuario)
+- Profesor puede marcar respuestas como solución oficial
+
+---
+
+### RF-09: Tutorías entre Pares
+**Prioridad:** Media  
+**Descripción:** Estudiantes con dominio demostrado pueden registrarse como tutores y apoyar a otros del mismo curso.
+
+**Criterios de aceptación:**
+- Sistema identifica candidatos a tutor con calificación > umbral (por defecto 85%)
+- Estudiante solicita tutoría especificando el tema; sistema sugiere tutores disponibles
+- Sesiones coordinadas desde la plataforma (chat interno o referencia a herramienta externa)
+- Tutor y tutorado se califican mutuamente al finalizar la sesión
+- Historial de tutorías visible en el perfil académico del estudiante
+
+---
+
+### RF-10: Panel de Analítica para Profesores
+**Prioridad:** Media  
+**Descripción:** Los profesores acceden a un panel con indicadores de desempeño y participación de sus estudiantes.
+
+**Criterios de aceptación:**
+- Muestra en tiempo real: tasa de completitud, calificación promedio por módulo y estudiantes activos
+- Resalta módulos con mayor tasa de reprobación (promedio < umbral definido)
+- Filtros por período, módulo o grupo de estudiantes
+- Datos con máximo 60 segundos de retraso respecto al estado real
+- Exportación de reportes en CSV
+
+---
+
+### 2.1 Tabla de Priorización de RF
+
+| ID | Nombre | Prioridad | Impacto en el negocio |
+|----|--------|-----------|-----------------------|
+| RF-01 | Autenticación y Gestión de Usuarios | Alta | Alto |
+| RF-02 | Control de Acceso por Roles (RBAC) | Alta | Alto |
+| RF-03 | Creación y Gestión de Cursos | Alta | Alto |
+| RF-04 | Inscripción de Estudiantes | Alta | Alto |
+| RF-05 | Seguimiento del Progreso Académico | Alta | Alto |
+| RF-06 | Adaptación del Recorrido de Aprendizaje | Alta | Alto |
+| RF-07 | Evaluaciones | Alta | Alto |
+| RF-08 | Grupos de Estudio y Foros | Media | Medio |
+| RF-09 | Tutorías entre Pares | Media | Medio |
+| RF-10 | Panel de Analítica para Profesores | Media | Medio |
+
+---
+
+## 3. REQUERIMIENTOS NO FUNCIONALES (RNF)
+
+### RNF-01: Escalabilidad
+**ID:** RNF-01  
+**Categoría:** Scalability  
+**Descripción:** El sistema debe soportar crecimiento en usuarios y cursos sin requerir rediseño arquitectónico.
+
+**Métricas:**
+- Soportar hasta 10.000 usuarios concurrentes sin degradación de rendimiento
+- Escalar horizontalmente añadiendo instancias sin modificar el código de negocio
+- Al duplicar la carga, el tiempo de respuesta no aumenta más del 20%
+- Validado con pruebas de carga de al menos 5.000 peticiones simultáneas
+
+**Justificación:** El enunciado exige soporte para miles de usuarios concurrentes y múltiples cursos simultáneos.
+
+---
+
+### RNF-02: Disponibilidad
+**ID:** RNF-02  
+**Categoría:** Availability  
+**Descripción:** La plataforma debe estar disponible de forma continua minimizando el tiempo de inactividad no planificado.
+
+**Métricas:**
+- Disponibilidad mínima del 99.5% mensual (máximo ~3.6 horas de inactividad al mes)
+- Tiempo de recuperación ante fallo de componente no crítico ≤ 30 segundos
+- Actualizaciones mediante despliegues blue/green o rolling updates sin downtime perceptible
+- Réplicas de base de datos para garantizar continuidad ante fallo del nodo primario
+
+**Justificación:** El enunciado establece explícitamente una disponibilidad mínima del 99.5%.
+
+---
+
+### RNF-03: Rendimiento
+**ID:** RNF-03  
+**Categoría:** Performance  
+**Descripción:** Las operaciones principales del sistema deben responder dentro de los tiempos definidos.
+
+**Métricas:**
+- Operaciones de lectura (consultar curso, ver progreso) ≤ 1 segundo (P95)
+- Operaciones de escritura (enviar evaluación, publicar en foro) ≤ 2 segundos (P95)
+- Motor de adaptación aplica reglas en < 2 segundos tras recibir un resultado
+- Caché para contenidos frecuentes, reduciendo carga en base de datos en al menos 40%
+
+**Justificación:** El enunciado exige que las operaciones principales respondan en menos de 2 segundos.
+
+---
+
+### RNF-04: Seguridad
+**ID:** RNF-04  
+**Categoría:** Security  
+**Descripción:** El sistema garantiza autenticación segura, protección de datos y control de acceso granular.
+
+**Métricas:**
+- Toda comunicación mediante HTTPS/TLS 1.2 o superior
+- Contraseñas almacenadas con hashing seguro (bcrypt o argon2) con sal única por usuario
+- Tokens JWT con expiración configurable (por defecto 30 min)
+- Rate limiting: 100 peticiones por minuto por IP
+- Registros de auditoría de accesos a datos sensibles almacenados por mínimo 1 año
+- Datos personales tratados conforme a la Ley 1581 de 2012
+
+**Justificación:** El enunciado incluye autenticación segura, protección de datos y control de acceso basado en roles como requisitos explícitos.
+
+---
+
+### RNF-05: Mantenibilidad
+**ID:** RNF-05  
+**Categoría:** Maintainability  
+**Descripción:** La arquitectura debe facilitar la incorporación de nuevas funcionalidades sin afectar el sistema en producción.
+
+**Métricas:**
+- Nueva funcionalidad no debe requerir cambios en más de 2 módulos del sistema
+- Cobertura de pruebas unitarias e integración ≥ 70% en módulos críticos
+- Tiempo de despliegue en producción ≤ 15 minutos mediante pipeline CI/CD automatizado
+- APIs documentadas con OpenAPI 3.0
+
+**Justificación:** El enunciado exige que la arquitectura permita incorporar nuevas funcionalidades sin afectar el sistema existente.
+
+---
+
+### RNF-06: Interoperabilidad
+**ID:** RNF-06  
+**Categoría:** Interoperability  
+**Descripción:** El sistema debe permitir integraciones futuras con otras plataformas educativas mediante estándares abiertos.
+
+**Métricas:**
+- API RESTful documentada (OpenAPI 3.0) para todos los módulos principales
+- Autenticación compatible con OAuth 2.0 e OIDC
+- Diseño preparado para adopción futura de IMS Global LTI
+- Exportación de datos de progreso en formatos estándar (xAPI/Tin Can)
+
+**Justificación:** El enunciado especifica que el sistema debe permitir integraciones futuras con otras plataformas educativas.
+
+---
+
+### 3.1 Tabla de Priorización de RNF
+
+| ID | Atributo de Calidad | Prioridad | Impacto Arquitectónico | Métrica Clave |
+|----|---------------------|-----------|------------------------|---------------|
+| RNF-01 | Escalabilidad | Alta | Alto | 10.000 usuarios concurrentes sin degradación |
+| RNF-02 | Disponibilidad | Alta | Alto | 99.5% mensual / recuperación ≤ 30 seg |
+| RNF-03 | Rendimiento | Alta | Alto | ≤ 2 seg (P95) operaciones principales |
+| RNF-04 | Seguridad | Alta | Alto | HTTPS, RBAC, rate limiting, auditoría |
+| RNF-05 | Mantenibilidad | Alta | Alto | Cambios en ≤ 2 módulos; cobertura ≥ 70% |
+| RNF-06 | Interoperabilidad | Media | Medio | API REST + OAuth 2.0 / IMS LTI futuro |
+
+---
+
+## APROBACIONES
+
+| Rol | Nombre | Firma | Fecha |
+|-----|--------|-------|-------|
+| **Líder del Grupo** | [Nombre Integrante 1] | __________ | ___/___/2026 |
+| **Integrante 2** | [Nombre Integrante 2] | __________ | ___/___/2026 |
+| **Integrante 3** | [Nombre Integrante 3] | __________ | ___/___/2026 |
+| **Integrante 4** | [Nombre Integrante 4] | __________ | ___/___/2026 |
+
+---
+
+**Fin del Documento SRS**
